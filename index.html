@@ -12,11 +12,11 @@
                 document.getElementById('error-message').innerHTML = "";
 
                 const runners = ['runner1', 'runner2', 'runner3', 'runner4'];
-                runners.forEach(id => {
-                    const horse = document.getElementById(id);
-                    horse.style.transition = "none"; 
-                    horse.style.left = "0";
-                    horse.classList.remove('bobbing');
+                racers.forEach(r => {
+                    const el = document.getElementById(r.contId);
+                    el.style.transition = `left ${r.time}s linear`;
+                    el.style.left = "calc(100% - 95px)";
+                    el.classList.add('bobbing');
                 });
 
                 document.getElementById('horsePreview').src = "horse_mystery.png";
@@ -41,6 +41,7 @@
                 const totalBudget = Math.floor(Math.random() * 6) + 15;
                 
                 let s1 = Math.floor(Math.random() * 10) + 1;
+                if (s1 <= 3 ) s1 += 3;
                 let s2 = Math.floor(Math.random() * (10-s1)) + 1;
                 
                 let s3 = totalBudget - (s1 + s2);
@@ -61,106 +62,103 @@
 
             function runRaceSimulation() {
                 const errorDiv = document.getElementById('error-message');
-                const output = document.getElementById('outputDisplay');
-                
                 const speed = parseInt(document.getElementById('statSpeed').value) || 0;
                 const stamina = parseInt(document.getElementById('statStamina').value) || 0;
                 const fortitude = parseInt(document.getElementById('statFortitude').value) || 0;
                 const raceLength = document.getElementById('strategy').value;
 
+                // Validation
                 const statRegex = /^([1-9]|10)$/;
                 if (!statRegex.test(speed) || !statRegex.test(stamina) || !statRegex.test(fortitude)) {
-                    errorDiv.innerHTML = "❌ Error: Stats must be 1-10.";
+                    errorDiv.innerHTML = "Error: Stats must be 1-10.";
                     return;
                 }
                 if (speed + stamina + fortitude > 20) {
-                    errorDiv.innerHTML = "❌ Error: Total stats exceed 20.";
+                    errorDiv.innerHTML = "Error: Total stats exceed 20.";
                     return;
                 }
                 if (!raceLength) {
-                    errorDiv.innerHTML = "❌ Error: Please select a race length.";
+                    errorDiv.innerHTML = "Error: Please select a race length.";
                     return;
                 }
-                document.getElementById('finishMessage').style.display = "none";
 
                 errorDiv.innerHTML = "";
+                document.getElementById('finishMessage').style.display = "none";
 
-                const allColors = ["horse_white.png", "horse_black.png", "horse_red.png", "horse_blue.png", "horse_yellow.png", "horse_green.png"];
+                const nameMap = {
+                    "horse_black.png": "Twilight Requiem",
+                    "horse_white.png": "Ghost of Chivalry",
+                    "horse_red.png": "Red Tide",
+                    "horse_blue.png": "Ocean Feather",
+                    "horse_yellow.png": "Morning Glory",
+                    "horse_green.png": "Clover Fortune",
+                    "horse_mystery.png": "Unknown Steed"
+                };
+
+                const racerNameInput = document.getElementById('racerName').value || "Player 1";
+                document.getElementById('name1').innerText = racerNameInput;
                 const selectedRadio = document.querySelector('input[name="horseColor"]:checked');
                 const userColor = selectedRadio ? selectedRadio.getAttribute('data-img') : "horse_mystery.png";
+                document.getElementById('runner1').src = userColor;
 
+                const allColors = ["horse_white.png", "horse_black.png", "horse_red.png", "horse_blue.png", "horse_yellow.png", "horse_green.png"];
                 let npcPool = allColors.filter(color => color !== userColor);
-
                 npcPool.sort(() => Math.random() - 0.5);
 
-                document.getElementById('runner2').src = npcPool[0];
-                document.getElementById('runner3').src = npcPool[1];
-                document.getElementById('runner4').src = npcPool[2];
+                for (let i = 0; i < 3; i++) {
+                    document.getElementById(`runner${i + 2}`).src = npcPool[i];
+                    document.getElementById(`name${i + 2}`).innerText = nameMap[npcPool[i]];
+                }
 
-                let trackDifficulty = 2; 
-                if (raceLength === "mile") trackDifficulty = 4;
-                if (raceLength === "medium") trackDifficulty = 7;
-                if (raceLength === "long") trackDifficulty = 10;
-
-                // calculate condition penalty
+                let trackDifficulty = raceLength === "long" ? 10 : (raceLength === "medium" ? 7 : (raceLength === "mile" ? 4 : 2));
                 let conditionPenalty = 0;
-                if (document.getElementById('condRain').checked) conditionPenalty += 0.1;    
-                if (document.getElementById('condDirt').checked) conditionPenalty += 0.05;     
+                if (document.getElementById('condRain').checked) conditionPenalty += 0.1;
+                if (document.getElementById('condDirt').checked) conditionPenalty += 0.05;
                 if (document.getElementById('condLateNight').checked) conditionPenalty += 0.05;
                 if (document.getElementById('condNervous').checked) conditionPenalty += 0.15;
 
-                const userStats = { speed, stamina, fortitude };
-                
-                const getFinalTime = (stats) => {
-                    let baseExhaustion = 1 + (Math.max(0, trackDifficulty - stats.stamina) * 0.15);
-                    let totalExhaustion = baseExhaustion + conditionPenalty;
-                    let time = (50 / stats.speed) * totalExhaustion;
-                    let mitigation = stats.fortitude * 0.05;
-                    return time * (1 - mitigation);
+                const calculateTime = (stats) => {
+                    let exhaustion = 1 + (Math.max(0, trackDifficulty - stats.stamina) * 0.15) + conditionPenalty;
+                    let time = (50 / stats.speed) * exhaustion;
+                    return time * (1 - (stats.fortitude * 0.05));
                 };
 
-                const userTime = calculateFinishTime(userStats, trackDifficulty);
+                const userTime = calculateTime({ speed, stamina, fortitude });
+                const npc1Time = calculateTime(generateNPCStats());
+                const npc2Time = calculateTime(generateNPCStats());
+                const npc3Time = calculateTime(generateNPCStats());
 
-                const npc1 = generateNPCStats();
-                const npc2 = generateNPCStats();
-                const npc3 = generateNPCStats();
 
-                const npc1Time = calculateFinishTime(npc1, trackDifficulty);
-                const npc2Time = calculateFinishTime(npc2, trackDifficulty);
-                const npc3Time = calculateFinishTime(npc3, trackDifficulty);
+                const racers = [
+                    { contId: 'cont1', time: userTime },
+                    { contId: 'cont2', time: npc1Time },
+                    { contId: 'cont3', time: npc2Time },
+                    { contId: 'cont4', time: npc3Time }
+                ];
 
-                const finishLine = "100%";
-                const runners = ['runner1', 'runner2', 'runner3', 'runner4'];
-                
-                runners.forEach(id => {
-                    document.getElementById(id).style.transition = "none";
-                    document.getElementById(id).style.left = "0";
+                racers.forEach(r => {
+                    const el = document.getElementById(r.contId);
+                    el.style.transition = "none";
+                    el.style.left = "0";
+                    el.classList.remove('bobbing');
                 });
 
                 setTimeout(() => {
-                    const runners = [
-                        { id: 'runner1', time: userTime },
-                        { id: 'runner2', time: npc1Time },
-                        { id: 'runner3', time: npc2Time },
-                        { id: 'runner4', time: npc3Time }
-                    ];
-
-                    runners.forEach(runner => {
-                        const element = document.getElementById(runner.id);
-                        
-
-                        element.style.transition = `left ${runner.time}s linear`;
-                        element.style.left = finishLine;
-                        element.classList.add('bobbing');
+                    racers.forEach(r => {
+                        const el = document.getElementById(r.contId);
+                        el.style.transition = `left ${r.time}s linear`;
+                        el.style.left = "calc(100% - 100px)";
+                        el.classList.add('bobbing');
 
                         setTimeout(() => {
-                            element.classList.remove('bobbing');
-                            if (runner.id === 'runner1') {
+                            el.classList.remove('bobbing');
+                            if (r.contId === 'cont1') {
+                                let place = 1;
                                 const msgBox = document.getElementById('finishMessage');
                                 msgBox.innerHTML = resultMsg; 
                                 msgBox.style.display = "block";
                             }
-                        }, runner.time * 1000);
+                        }, r.time * 1000);
                     });
                 }, 50);
                 
@@ -169,8 +167,7 @@
                 if (userTime > npc2Time) place++;
                 if (userTime > npc3Time) place++;
 
-                let resultMsg = place === 1 ? "1st Place!" : (place === 2 ? "2nd Place" : (place === 3 ? "3rd Place" : "4th Place"));
-                
+                let resultMsg = place === 1 ? "1st Place!" : (place === 2 ? "2nd Place!" : (place === 3 ? "3rd Place!" : "4th Place..."));
             }
         </script>
     </head>
@@ -263,20 +260,28 @@
 
         <section id="resultsArea">
             <h3>Race Simulation Results</h3>
-            
-            <div id="raceTrack" style="position: relative; width: 100%; height: 200px; background: #83b071; border: 4px solid #3e2723; overflow: hidden; margin-bottom: 20px;">
-                <div id="raceTrack" style="position: relative; width: 100%; height: 200px; background: #83b071; border: 4px solid #3e2723; overflow: hidden; margin-bottom: 20px;">
-                <div id="finishMessage"></div>
+            <div id="raceTrack" style="position: relative; width: 100%; height: 250px; background: #83b071; border: 4px solid #3e2723; overflow: hidden; margin-bottom: 20px;">
+                <div id="finishMessage" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10; font-size: 24px; font-weight: bold; background: rgba(255,255,255,0.8); padding: 5px 15px; border-radius: 10px; display: none;"></div>
                 <div style="position: absolute; right: 50px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px);"></div>
                 
-                
-                <img id="runner1" src="horse_mystery.png" alt="Your Racer" style="position: absolute; left: 0; top: -15px; width: 90px; transition: left 2s ease-out;">
-                
-                <img id="runner2" src="horse_mystery.png" alt="Rival 1" style="position: absolute; left: 0; top: 30px; width: 90px; transition: left 2s ease-out;">
-                <img id="runner3" src="horse_mystery.png" alt="Rival 2" style="position: absolute; left: 0; top: 75px; width: 90px; transition: left 2s ease-out;">
-                <img id="runner4" src="horse_mystery.png" alt="Rival 3" style="position: absolute; left: 0; top: 120px; width: 90px; transition: left 2s ease-out;">
-            </div>
+                <div id="cont1" class="horse-container" style="top: 0px;">
+                    <div id="name1" class="horse-name">?</div>
+                    <img id="runner1" src="horse_mystery.png" style="width: 100%;">
+                </div>
 
+                <div id="cont2" class="horse-container" style="top: 55px;">
+                    <div id="name2" class="horse-name">?</div>
+                    <img id="runner2" src="horse_mystery.png" style="width: 100%;">
+                </div>
+                <div id="cont3" class="horse-container" style="top: 110px;">
+                    <div id="name3" class="horse-name">?</div>
+                    <img id="runner3" src="horse_mystery.png" style="width: 100%;">
+                </div>
+                <div id="cont4" class="horse-container" style="top: 165px;">
+                    <div id="name4" class="horse-name">?</div>
+                    <img id="runner4" src="horse_mystery.png" style="width: 100%;">
+                </div>
+            </div>
         </section>
     </body>
 </html>
