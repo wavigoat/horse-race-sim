@@ -6,24 +6,29 @@
         <script>
 
             function resetRace() {
+                // 1. Reset the form fields
                 document.getElementById('trainerForm').reset();
+                
+                // 2. Hide the finish message and clear errors
                 document.getElementById('finishMessage').style.display = "none";
-
                 document.getElementById('error-message').innerHTML = "";
 
-                const runners = ['runner1', 'runner2', 'runner3', 'runner4'];
-                racers.forEach(r => {
-                    const el = document.getElementById(r.contId);
-                    el.style.transition = `left ${r.time}s linear`;
-                    el.style.left = "calc(100% - 95px)";
-                    el.classList.add('bobbing');
+                // 3. Move all horses back to the start (Fixed logic)
+                const containers = ['cont1', 'cont2', 'cont3', 'cont4'];
+                containers.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.transition = "none"; // Stop any current movement
+                        el.style.left = "0px";        // Reset position to start
+                        el.classList.remove('bobbing');
+                    }
                 });
 
+                // 4. Reset images to mystery horse
                 document.getElementById('horsePreview').src = "horse_mystery.png";
-                document.getElementById('runner1').src = "horse_mystery.png";
-                document.getElementById('runner2').src = "horse_mystery.png";
-                document.getElementById('runner3').src = "horse_mystery.png";
-                document.getElementById('runner4').src = "horse_mystery.png";
+                document.querySelectorAll('[id^="runner"]').forEach(img => {
+                    img.src = "horse_mystery.png";
+                });
             }
 
             function changeHorseImage(element) {
@@ -150,10 +155,10 @@
                         el.style.left = "calc(100% - 100px)";
                         el.classList.add('bobbing');
 
+                        // Remove bobbing after they finish
                         setTimeout(() => {
                             el.classList.remove('bobbing');
                             if (r.contId === 'cont1') {
-                                let place = 1;
                                 const msgBox = document.getElementById('finishMessage');
                                 msgBox.innerHTML = resultMsg; 
                                 msgBox.style.display = "block";
