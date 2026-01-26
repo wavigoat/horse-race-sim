@@ -1,0 +1,283 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Horse Racing Simulator</title>
+        <link rel="stylesheet" href="./style.css">
+        <script>
+
+            function resetRace() {
+                document.getElementById('trainerForm').reset();
+                document.getElementById('finishMessage').style.display = "none";
+
+                document.getElementById('error-message').innerHTML = "";
+
+                const runners = ['runner1', 'runner2', 'runner3', 'runner4'];
+                runners.forEach(id => {
+                    const horse = document.getElementById(id);
+                    horse.style.transition = "none"; 
+                    horse.style.left = "0";
+                    horse.classList.remove('bobbing');
+                });
+
+                document.getElementById('horsePreview').src = "horse_mystery.png";
+                document.getElementById('runner1').src = "horse_mystery.png";
+                document.getElementById('runner2').src = "horse_mystery.png";
+                document.getElementById('runner3').src = "horse_mystery.png";
+                document.getElementById('runner4').src = "horse_mystery.png";
+            }
+
+            function changeHorseImage(element) {
+                const preview = document.getElementById('horsePreview');
+                const track = document.getElementById('runner1');
+
+                const newSrc = element.getAttribute('data-img');
+
+                if (preview) preview.src = newSrc;
+                if (track) track.src = newSrc;
+                
+            }
+
+            function generateNPCStats() {
+                const totalBudget = Math.floor(Math.random() * 6) + 15;
+                
+                let s1 = Math.floor(Math.random() * 10) + 1;
+                let s2 = Math.floor(Math.random() * (10-s1)) + 1;
+                
+                let s3 = totalBudget - (s1 + s2);
+                
+                if (s3 > 10) return generateNPCStats();
+                
+                return { speed: s1, stamina: s2, fortitude: s3 };
+            }
+
+            function calculateFinishTime(stats, trackDifficulty) {
+                let exhaustionFactor = 1 + (Math.max(0, trackDifficulty - stats.stamina) * 0.15);
+                
+                let time =  (50/stats.speed) * exhaustionFactor;
+                
+                let mitigation = stats.fortitude * 0.05;
+                return time * (1 - mitigation);
+            }
+
+            function runRaceSimulation() {
+                const errorDiv = document.getElementById('error-message');
+                const output = document.getElementById('outputDisplay');
+                
+                const speed = parseInt(document.getElementById('statSpeed').value) || 0;
+                const stamina = parseInt(document.getElementById('statStamina').value) || 0;
+                const fortitude = parseInt(document.getElementById('statFortitude').value) || 0;
+                const raceLength = document.getElementById('strategy').value;
+
+                const statRegex = /^([1-9]|10)$/;
+                if (!statRegex.test(speed) || !statRegex.test(stamina) || !statRegex.test(fortitude)) {
+                    errorDiv.innerHTML = "❌ Error: Stats must be 1-10.";
+                    return;
+                }
+                if (speed + stamina + fortitude > 20) {
+                    errorDiv.innerHTML = "❌ Error: Total stats exceed 20.";
+                    return;
+                }
+                if (!raceLength) {
+                    errorDiv.innerHTML = "❌ Error: Please select a race length.";
+                    return;
+                }
+                document.getElementById('finishMessage').style.display = "none";
+
+                errorDiv.innerHTML = "";
+
+                const allColors = ["horse_white.png", "horse_black.png", "horse_red.png", "horse_blue.png", "horse_yellow.png", "horse_green.png"];
+                const selectedRadio = document.querySelector('input[name="horseColor"]:checked');
+                const userColor = selectedRadio ? selectedRadio.getAttribute('data-img') : "horse_mystery.png";
+
+                let npcPool = allColors.filter(color => color !== userColor);
+
+                npcPool.sort(() => Math.random() - 0.5);
+
+                document.getElementById('runner2').src = npcPool[0];
+                document.getElementById('runner3').src = npcPool[1];
+                document.getElementById('runner4').src = npcPool[2];
+
+                let trackDifficulty = 2; 
+                if (raceLength === "mile") trackDifficulty = 4;
+                if (raceLength === "medium") trackDifficulty = 7;
+                if (raceLength === "long") trackDifficulty = 10;
+
+                // calculate condition penalty
+                let conditionPenalty = 0;
+                if (document.getElementById('condRain').checked) conditionPenalty += 0.1;    
+                if (document.getElementById('condDirt').checked) conditionPenalty += 0.05;     
+                if (document.getElementById('condLateNight').checked) conditionPenalty += 0.05;
+                if (document.getElementById('condNervous').checked) conditionPenalty += 0.15;
+
+                const userStats = { speed, stamina, fortitude };
+                
+                const getFinalTime = (stats) => {
+                    let baseExhaustion = 1 + (Math.max(0, trackDifficulty - stats.stamina) * 0.15);
+                    let totalExhaustion = baseExhaustion + conditionPenalty;
+                    let time = (50 / stats.speed) * totalExhaustion;
+                    let mitigation = stats.fortitude * 0.05;
+                    return time * (1 - mitigation);
+                };
+
+                const userTime = calculateFinishTime(userStats, trackDifficulty);
+
+                const npc1 = generateNPCStats();
+                const npc2 = generateNPCStats();
+                const npc3 = generateNPCStats();
+
+                const npc1Time = calculateFinishTime(npc1, trackDifficulty);
+                const npc2Time = calculateFinishTime(npc2, trackDifficulty);
+                const npc3Time = calculateFinishTime(npc3, trackDifficulty);
+
+                const finishLine = "100%";
+                const runners = ['runner1', 'runner2', 'runner3', 'runner4'];
+                
+                runners.forEach(id => {
+                    document.getElementById(id).style.transition = "none";
+                    document.getElementById(id).style.left = "0";
+                });
+
+                setTimeout(() => {
+                    const runners = [
+                        { id: 'runner1', time: userTime },
+                        { id: 'runner2', time: npc1Time },
+                        { id: 'runner3', time: npc2Time },
+                        { id: 'runner4', time: npc3Time }
+                    ];
+
+                    runners.forEach(runner => {
+                        const element = document.getElementById(runner.id);
+                        
+
+                        element.style.transition = `left ${runner.time}s linear`;
+                        element.style.left = finishLine;
+                        element.classList.add('bobbing');
+
+                        setTimeout(() => {
+                            element.classList.remove('bobbing');
+                            if (runner.id === 'runner1') {
+                                const msgBox = document.getElementById('finishMessage');
+                                msgBox.innerHTML = resultMsg; 
+                                msgBox.style.display = "block";
+                            }
+                        }, runner.time * 1000);
+                    });
+                }, 50);
+                
+                let place = 1;
+                if (userTime > npc1Time) place++;
+                if (userTime > npc2Time) place++;
+                if (userTime > npc3Time) place++;
+
+                let resultMsg = place === 1 ? "1st Place!" : (place === 2 ? "2nd Place" : (place === 3 ? "3rd Place" : "4th Place"));
+                
+            }
+        </script>
+    </head>
+    <body>
+        <h2>Horse Racing Simulator</h2>
+        <div id="error-message" style="color: red; font-weight: bold; margin-bottom: 15px;"></div>
+        
+
+        <form id="trainerForm">
+            <fieldset>
+                <legend>Racer Statistics</legend>
+                <label for="racerName">Racer Name:</label>
+                <input type="text" id="racerName" placeholder="e.g. Bob" required><br><br>
+
+                <label for="statSpeed">Speed:</label>
+                <input type="text" id="statSpeed" placeholder="1-10">
+                
+                <label for="statStamina">Stamina:</label>
+                <input type="text" id="statStamina" placeholder="1-10">
+
+                <label for="statFortitude">Fortitude:</label>
+                <input type="text" id="statFortitude" placeholder="1-10">
+            </fieldset>
+
+            <fieldset>
+                <legend>Horse Color</legend>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div>
+                        <input type="radio" id="colorWhite" name="horseColor" value="White" data-img="horse_white.png" onchange="changeHorseImage(this)">
+                        <label for="colorWhite">White</label><br>
+
+                        <input type="radio" id="colorBlack" name="horseColor" value="Black" data-img="horse_black.png" onchange="changeHorseImage(this)">
+                        <label for="colorBlack">Black</label><br>
+
+                        <input type="radio" id="colorRed" name="horseColor" value="Red" data-img="horse_red.png" onchange="changeHorseImage(this)">
+                        <label for="colorRed">Red</label><br>
+
+                        <input type="radio" id="colorBlue" name="horseColor" value="Blue" data-img="horse_blue.png" onchange="changeHorseImage(this)">
+                        <label for="colorBlue">Blue</label><br>
+
+                        <input type="radio" id="colorYellow" name="horseColor" value="Yellow" data-img="horse_yellow.png" onchange="changeHorseImage(this)">
+                        <label for="colorYellow">Yellow</label><br>
+
+                        <input type="radio" id="colorGreen" name="horseColor" value="Green" data-img="horse_green.png" onchange="changeHorseImage(this)">
+                        <label for="colorGreen">Green</label><br>
+
+                        
+                    </div>
+
+                    <div id="stable-preview" style="text-align: center; border: 2px dashed #003366; padding: 10px; min-width: 150px;">
+                        <img id="horsePreview" src="horse_mystery.png">
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Track Conditions</legend>
+                <p>Select all that apply to the current race:</p>
+                <input type="checkbox" id="condRain" name="condition" value="Rainy">
+                <label for="condRain">Rainy Weather</label><br>
+                
+                <input type="checkbox" id="condDirt" name="condition" value="Dirt">
+                <label for="condDirt">Dirt Track</label><br>
+
+                <input type="checkbox" id="condLateNight" name="condition" value="LateNight">
+                <label for="condLateNight">Late Night</label><br>
+
+                <input type="checkbox" id="condNervous" name="condition" value="Nervous">
+                <label for="condNervous">Nervous</label><br>
+                
+            </fieldset>
+
+            <fieldset>
+                <legend>Race Length</legend>
+                <label for="strategy">Select Strategy:</label>
+                <select id="strategy">
+                    <option value="">--Select Track Length--</option>
+                    <option value="sprint">Sprint</option>
+                    <option value="mile">Mile</option>
+                    <option value="medium">Medium</option>
+                    <option value="long">Long</option>
+                </select>
+            </fieldset>
+            <br>
+            <button type="button" onclick="runRaceSimulation()">Calculate Race Result</button>
+            <button type="button" onclick="resetRace()">Reset Form</button>
+        </form>
+
+        <hr>
+
+        <section id="resultsArea">
+            <h3>Race Simulation Results</h3>
+            
+            <div id="raceTrack" style="position: relative; width: 100%; height: 200px; background: #83b071; border: 4px solid #3e2723; overflow: hidden; margin-bottom: 20px;">
+                <div id="raceTrack" style="position: relative; width: 100%; height: 200px; background: #83b071; border: 4px solid #3e2723; overflow: hidden; margin-bottom: 20px;">
+                <div id="finishMessage"></div>
+                <div style="position: absolute; right: 50px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px);"></div>
+                
+                
+                <img id="runner1" src="horse_mystery.png" alt="Your Racer" style="position: absolute; left: 0; top: -15px; width: 90px; transition: left 2s ease-out;">
+                
+                <img id="runner2" src="horse_mystery.png" alt="Rival 1" style="position: absolute; left: 0; top: 30px; width: 90px; transition: left 2s ease-out;">
+                <img id="runner3" src="horse_mystery.png" alt="Rival 2" style="position: absolute; left: 0; top: 75px; width: 90px; transition: left 2s ease-out;">
+                <img id="runner4" src="horse_mystery.png" alt="Rival 3" style="position: absolute; left: 0; top: 120px; width: 90px; transition: left 2s ease-out;">
+            </div>
+
+        </section>
+    </body>
+</html>
+
