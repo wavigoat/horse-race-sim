@@ -7,7 +7,6 @@
             const racerIds = ['cont1', 'cont2', 'cont3', 'cont4'];
             let activeTimers = [];
 
-            // Clears all pending timers to stop old races from interfering
             function clearAllTimers() {
                 activeTimers.forEach(timer => clearTimeout(timer));
                 activeTimers = [];
@@ -15,6 +14,7 @@
 
             function resetRace() {
                 clearAllTimers();
+                document.getElementById('colorCustom').setAttribute('data-img', 'custom');
                 document.getElementById('trainerForm').reset();
                 document.getElementById('finishMessage').style.display = "none";
                 document.getElementById('error-message').innerHTML = "";
@@ -26,7 +26,7 @@
                     el.classList.remove('bobbing');
                 });
 
-                // Reset images
+                // reset images
                 document.getElementById('horsePreview').src = "horse_mystery.png";
                 for (let i = 1; i <= 4; i++) {
                     document.getElementById('runner' + i).src = "horse_mystery.png";
@@ -172,6 +172,28 @@
                 
                 activeTimers.push(startRace);
             }
+            
+            function triggerCustomUpload() {
+                document.getElementById('customHorseUpload').click();
+            }
+
+            function handleCustomImage(input) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        const customSrc = e.target.result;
+                        
+                        document.getElementById('colorCustom').setAttribute('data-img', customSrc);
+ 
+                        document.getElementById('horsePreview').src = customSrc;
+                        document.getElementById('runner1').src = customSrc;
+                    };
+
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+        
         </script>
     </head>
     <body>
@@ -217,11 +239,15 @@
                         <input type="radio" id="colorGreen" name="horseColor" value="Green" data-img="horse_green.png" onchange="changeHorseImage(this)">
                         <label for="colorGreen">Green</label><br>
 
+                        <input type="radio" id="colorCustom" name="horseColor" value="Custom" data-img="custom" onchange="triggerCustomUpload()">
+                        <label for="colorCustom">Custom (Upload)</label>
+                        <input type="file" id="customHorseUpload" style="display: none;" accept="image/*" onchange="handleCustomImage(this)">
+
                         
                     </div>
 
-                    <div id="stable-preview" style="text-align: center; border: 2px dashed #003366; padding: 10px; min-width: 150px;">
-                        <img id="horsePreview" src="horse_mystery.png">
+                    <div id="stable-preview" style="text-align: center; border: 2px dashed #003366; padding: 10px; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center;">
+                        <img id="horsePreview" src="horse_mystery.png" style="width: 200px; height: 200px; object-fit: contain;">
                     </div>
                 </div>
             </fieldset>

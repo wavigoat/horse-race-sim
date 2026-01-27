@@ -118,3 +118,19 @@ tr:has(a:target) + tr {
     white-space: nowrap;
 }
 
+#horsePreview {
+    width: 200px;
+    height: 200px;
+    object-fit: contain; 
+}
+
+#stable-preview {
+    text-align: center; 
+    border: 2px dashed #003366; 
+    padding: 10px;
+    width: 200px; 
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
