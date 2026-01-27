@@ -54,6 +54,14 @@
                 return { speed: s1, stamina: s2, fortitude: s3 };
             }
 
+            function randomizeUserStats() {
+                const stats = generateNPCStats();
+                
+                document.getElementById('statSpeed').value = stats.speed;
+                document.getElementById('statStamina').value = stats.stamina;
+                document.getElementById('statFortitude').value = stats.fortitude;
+            }
+
             function runRaceSimulation() {
                 clearAllTimers();
                 const errorDiv = document.getElementById('error-message');
@@ -215,6 +223,8 @@
 
                 <label for="statFortitude">Fortitude:</label>
                 <input type="text" id="statFortitude" placeholder="1-10">
+
+                <button type="button" onclick="randomizeUserStats()" style="margin-top: 10px; display: block;">Randomize Stats</button>
             </fieldset>
 
             <fieldset>
