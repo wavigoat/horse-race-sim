@@ -134,3 +134,46 @@ tr:has(a:target) + tr {
     align-items: center;
     justify-content: center;
 }
+
+
+.page-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    max-width: 800px; 
+}
+
+.sidebar {
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 50px;
+}
+
+.sidebar img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+@media (max-width: 1024px) {
+    .sidebar {
+        display: none;
+    }
+}
+
+
+.stats-container {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+

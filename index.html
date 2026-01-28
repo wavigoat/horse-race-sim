@@ -27,9 +27,9 @@
                 });
 
                 // reset images
-                document.getElementById('horsePreview').src = "horse_mystery.png";
+                document.getElementById('horsePreview').src = "images/horse_mystery.png";
                 for (let i = 1; i <= 4; i++) {
-                    document.getElementById('runner' + i).src = "horse_mystery.png";
+                    document.getElementById('runner' + i).src = "images/horse_mystery.png";
                     document.getElementById('name' + i).innerText = "?";
                 }
             }
@@ -95,13 +95,13 @@
 
                 // Setup Racer Identity
                 const nameMap = {
-                    "horse_black.png": "Twilight Requiem",
-                    "horse_white.png": "Ghost of Chivalry",
-                    "horse_red.png": "Red Tide",
-                    "horse_blue.png": "Ocean Feather",
-                    "horse_yellow.png": "Morning Glory",
-                    "horse_green.png": "Clover Fortune",
-                    "horse_mystery.png": "Unknown Steed"
+                    "images/horse_black.png": "Twilight Requiem",
+                    "images/horse_white.png": "Ghost of Chivalry",
+                    "images/horse_red.png": "Red Tide",
+                    "images/horse_blue.png": "Ocean Feather",
+                    "images/horse_yellow.png": "Morning Glory",
+                    "images/horse_green.png": "Clover Fortune",
+                    "images/horse_mystery.png": "Unknown Steed"
                 };
 
                 const racerName = document.getElementById('racerName').value || "Player 1";
@@ -112,12 +112,26 @@
                 document.getElementById('runner1').src = userImg;
 
                 // Setup NPCs
-                const allColors = ["horse_white.png", "horse_black.png", "horse_red.png", "horse_blue.png", "horse_yellow.png", "horse_green.png"];
+                // Setup NPCs
+                const allColors = ["images/horse_white.png", "images/horse_black.png", "images/horse_red.png", "images/horse_blue.png", "images/horse_yellow.png", "images/horse_green.png"];
                 let npcPool = allColors.filter(c => c !== userImg).sort(() => Math.random() - 0.5);
 
                 for (let i = 0; i < 3; i++) {
-                    document.getElementById(`runner${i + 2}`).src = npcPool[i];
-                    document.getElementById(`name${i + 2}`).innerText = nameMap[npcPool[i]];
+                    const runnerImg = npcPool[i];
+                    const runnerEl = document.getElementById(`runner${i + 2}`);
+                    const nameDisplay = document.getElementById(`name${i + 2}`);
+                    
+                    // 1. Get the value from the new input fields (npcName1, npcName2, npcName3)
+                    const customName = document.getElementById(`npcName${i + 1}`).value;
+                    
+                    // 2. Get the default name from your nameMap based on the color
+                    const defaultName = nameMap[runnerImg];
+
+                    // 3. Set the image
+                    runnerEl.src = runnerImg;
+
+                    // 4. Use the custom name if typed; otherwise, use the default name
+                    nameDisplay.innerText = customName || defaultName;
                 }
 
                 // Race Physics
@@ -204,7 +218,15 @@
         
         </script>
     </head>
+    
     <body>
+        <div class="page-wrapper">
+            <aside class="sidebar left-sidebar">
+                <img src="images/df1.gif" alt="Decoration">
+                <img src="images/df2.gif" alt="Decoration">
+                <img src="images/df3.gif" alt="Decoration">
+            </aside>
+            <main class="main-content">
         <h2>Horse Racing Simulator</h2>
         <div id="error-message" style="color: red; font-weight: bold; margin-bottom: 15px;"></div>
         
@@ -215,14 +237,22 @@
                 <label for="racerName">Racer Name:</label>
                 <input type="text" id="racerName" placeholder="e.g. Bob" required><br><br>
 
-                <label for="statSpeed">Speed:</label>
-                <input type="text" id="statSpeed" placeholder="1-10">
-                
-                <label for="statStamina">Stamina:</label>
-                <input type="text" id="statStamina" placeholder="1-10">
+                <div class="stats-container">
+                    <div class="stat-group">
+                        <label for="statSpeed">Speed:</label>
+                        <input type="text" id="statSpeed" placeholder="1-10">
+                    </div>
+                    
+                    <div class="stat-group">
+                        <label for="statStamina">Stamina:</label>
+                        <input type="text" id="statStamina" placeholder="1-10">
+                    </div>
 
-                <label for="statFortitude">Fortitude:</label>
-                <input type="text" id="statFortitude" placeholder="1-10">
+                    <div class="stat-group">
+                        <label for="statFortitude">Fortitude:</label>
+                        <input type="text" id="statFortitude" placeholder="1-10">
+                    </div>
+                </div>
 
                 <button type="button" onclick="randomizeUserStats()" style="margin-top: 10px; display: block;">Randomize Stats</button>
             </fieldset>
@@ -231,22 +261,22 @@
                 <legend>Horse Color</legend>
                 <div style="display: flex; align-items: center; gap: 20px;">
                     <div>
-                        <input type="radio" id="colorWhite" name="horseColor" value="White" data-img="horse_white.png" onchange="changeHorseImage(this)">
+                        <input type="radio" id="colorWhite" name="horseColor" value="White" data-img="images/horse_white.png" onchange="changeHorseImage(this)">
                         <label for="colorWhite">White</label><br>
 
-                        <input type="radio" id="colorBlack" name="horseColor" value="Black" data-img="horse_black.png" onchange="changeHorseImage(this)">
+                        <input type="radio" id="colorBlack" name="horseColor" value="Black" data-img="images/horse_black.png" onchange="changeHorseImage(this)">
                         <label for="colorBlack">Black</label><br>
 
-                        <input type="radio" id="colorRed" name="horseColor" value="Red" data-img="horse_red.png" onchange="changeHorseImage(this)">
+                        <input type="radio" id="colorRed" name="horseColor" value="Red" data-img="images/horse_red.png" onchange="changeHorseImage(this)">
                         <label for="colorRed">Red</label><br>
 
-                        <input type="radio" id="colorBlue" name="horseColor" value="Blue" data-img="horse_blue.png" onchange="changeHorseImage(this)">
+                        <input type="radio" id="colorBlue" name="horseColor" value="Blue" data-img="images/horse_blue.png" onchange="changeHorseImage(this)">
                         <label for="colorBlue">Blue</label><br>
 
-                        <input type="radio" id="colorYellow" name="horseColor" value="Yellow" data-img="horse_yellow.png" onchange="changeHorseImage(this)">
+                        <input type="radio" id="colorYellow" name="horseColor" value="Yellow" data-img="images/horse_yellow.png" onchange="changeHorseImage(this)">
                         <label for="colorYellow">Yellow</label><br>
 
-                        <input type="radio" id="colorGreen" name="horseColor" value="Green" data-img="horse_green.png" onchange="changeHorseImage(this)">
+                        <input type="radio" id="colorGreen" name="horseColor" value="Green" data-img="images/horse_green.png" onchange="changeHorseImage(this)">
                         <label for="colorGreen">Green</label><br>
 
                         <input type="radio" id="colorCustom" name="horseColor" value="Custom" data-img="custom" onchange="triggerCustomUpload()">
@@ -257,7 +287,7 @@
                     </div>
 
                     <div id="stable-preview" style="text-align: center; border: 2px dashed #003366; padding: 10px; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center;">
-                        <img id="horsePreview" src="horse_mystery.png" style="width: 200px; height: 200px; object-fit: contain;">
+                        <img id="horsePreview" src="images/horse_mystery.png" style="width: 200px; height: 200px; object-fit: contain;">
                     </div>
                 </div>
             </fieldset>
@@ -290,6 +320,23 @@
                     <option value="long">Long</option>
                 </select>
             </fieldset>
+            <fieldset>
+                <legend>Opponent Names (Optional)</legend>
+                <div class="stats-container">
+                    <div class="stat-group">
+                        <label for="npcName1">Opponent 1:</label>
+                        <input type="text" id="npcName1" placeholder="e.g. Steve"><br>
+                    </div>
+                    <div class="stat-group">
+                        <label for="npcName2">Opponent 2:</label>
+                        <input type="text" id="npcName2" placeholder="e.g. Horse"><br>
+                    </div>
+                    <div class="stat-group">
+                        <label for="npcName3">Opponent 3:</label>
+                        <input type="text" id="npcName3" placeholder="e.g. Pony">
+                    </div>
+                </div>
+            </fieldset>
             <br>
             <button type="button" onclick="runRaceSimulation()">Calculate Race Result</button>
             <button type="button" onclick="resetRace()">Reset Form</button>
@@ -305,23 +352,32 @@
                 
                 <div id="cont1" class="horse-container" style="top: 0px;">
                     <div id="name1" class="horse-name">?</div>
-                    <img id="runner1" src="horse_mystery.png" style="width: 100%;">
+                    <img id="runner1" src="images/horse_mystery.png" style="width: 100%;">
                 </div>
 
                 <div id="cont2" class="horse-container" style="top: 55px;">
                     <div id="name2" class="horse-name">?</div>
-                    <img id="runner2" src="horse_mystery.png" style="width: 100%;">
+                    <img id="runner2" src="images/horse_mystery.png" style="width: 100%;">
                 </div>
                 <div id="cont3" class="horse-container" style="top: 110px;">
                     <div id="name3" class="horse-name">?</div>
-                    <img id="runner3" src="horse_mystery.png" style="width: 100%;">
+                    <img id="runner3" src="images/horse_mystery.png" style="width: 100%;">
                 </div>
                 <div id="cont4" class="horse-container" style="top: 165px;">
                     <div id="name4" class="horse-name">?</div>
-                    <img id="runner4" src="horse_mystery.png" style="width: 100%;">
+                    <img id="runner4" src="images/horse_mystery.png" style="width: 100%;">
                 </div>
             </div>
         </section>
+        
+        <hr>
+        <p><small><small>Sidebar gifs by TrinityTheLostFlame!</small></small></p>
+        </main>
+        <aside class="sidebar right-sidebar">
+        <img src="images/df4.gif" alt="Decoration">
+        <img src="images/df5.gif" alt="Decoration">
+        <img src="images/df6.gif" alt="Decoration">
+    </aside>
     </body>
 </html>
 
