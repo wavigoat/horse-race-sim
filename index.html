@@ -6,6 +6,21 @@
         <script>
             const racerIds = ['cont1', 'cont2', 'cont3', 'cont4'];
             let activeTimers = [];
+            let customNpcImages = { 2: null, 3: null, 4: null };
+
+            function handleNpcImage(input, runnerIndex) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const customSrc = e.target.result;
+                        // Update the track preview immediately
+                        document.getElementById('runner' + runnerIndex).src = customSrc;
+                        // Save it for the race logic
+                        customNpcImages[runnerIndex] = customSrc;
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
 
             function clearAllTimers() {
                 activeTimers.forEach(timer => clearTimeout(timer));
@@ -112,25 +127,23 @@
                 document.getElementById('runner1').src = userImg;
 
                 // Setup NPCs
-                // Setup NPCs
                 const allColors = ["images/horse_white.png", "images/horse_black.png", "images/horse_red.png", "images/horse_blue.png", "images/horse_yellow.png", "images/horse_green.png"];
                 let npcPool = allColors.filter(c => c !== userImg).sort(() => Math.random() - 0.5);
 
                 for (let i = 0; i < 3; i++) {
-                    const runnerImg = npcPool[i];
-                    const runnerEl = document.getElementById(`runner${i + 2}`);
-                    const nameDisplay = document.getElementById(`name${i + 2}`);
+                    const runnerIndex = i + 2; 
+                    const runnerEl = document.getElementById(`runner${runnerIndex}`);
+                    const nameDisplay = document.getElementById(`name${runnerIndex}`);
                     
-                    // 1. Get the value from the new input fields (npcName1, npcName2, npcName3)
                     const customName = document.getElementById(`npcName${i + 1}`).value;
                     
-                    // 2. Get the default name from your nameMap based on the color
-                    const defaultName = nameMap[runnerImg];
+                    if (customNpcImages[runnerIndex]) {
+                        runnerEl.src = customNpcImages[runnerIndex];
+                    } else {
+                        runnerEl.src = npcPool[i];
+                    }
 
-                    // 3. Set the image
-                    runnerEl.src = runnerImg;
-
-                    // 4. Use the custom name if typed; otherwise, use the default name
+                    const defaultName = nameMap[runnerEl.getAttribute('src')] || "Mystery Rival";
                     nameDisplay.innerText = customName || defaultName;
                 }
 
@@ -306,7 +319,7 @@
 
                 <input type="checkbox" id="condNervous" name="condition" value="Nervous">
                 <label for="condNervous">Nervous</label><br>
-                
+                <br>
             </fieldset>
 
             <fieldset>
@@ -321,19 +334,25 @@
                 </select>
             </fieldset>
             <fieldset>
-                <legend>Opponent Names (Optional)</legend>
+                <legend>Opponent Customization (Optional)</legend>
                 <div class="stats-container">
                     <div class="stat-group">
-                        <label for="npcName1">Opponent 1:</label>
-                        <input type="text" id="npcName1" placeholder="e.g. Steve"><br>
+                        <label for="npcName1">Rival 1:</label>
+                        <input type="text" id="npcName1" placeholder="e.g. Steve">
+                        <button type="button" onclick="document.getElementById('npcImg1').click()" style="display:block; margin-top:5px; font-size:10px;">Upload Image</button>
+                        <input type="file" id="npcImg1" style="display: none;" accept="image/*" onchange="handleNpcImage(this, 2)">
                     </div>
                     <div class="stat-group">
-                        <label for="npcName2">Opponent 2:</label>
-                        <input type="text" id="npcName2" placeholder="e.g. Horse"><br>
+                        <label for="npcName2">Rival 2:</label>
+                        <input type="text" id="npcName2" placeholder="e.g. Horse">
+                        <button type="button" onclick="document.getElementById('npcImg2').click()" style="display:block; margin-top:5px; font-size:10px;">Upload Image</button>
+                        <input type="file" id="npcImg2" style="display: none;" accept="image/*" onchange="handleNpcImage(this, 3)">
                     </div>
                     <div class="stat-group">
-                        <label for="npcName3">Opponent 3:</label>
+                        <label for="npcName3">Rival 3:</label>
                         <input type="text" id="npcName3" placeholder="e.g. Pony">
+                        <button type="button" onclick="document.getElementById('npcImg3').click()" style="display:block; margin-top:5px; font-size:10px;">Upload Image</button>
+                        <input type="file" id="npcImg3" style="display: none;" accept="image/*" onchange="handleNpcImage(this, 4)">
                     </div>
                 </div>
             </fieldset>
