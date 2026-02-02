@@ -78,29 +78,41 @@
                 return { speed: s1, stamina: s2, fortitude: s3 };
             }
 
-                        function randomizeUserStats() {
-                const stats = generateNPCStats();
-                
-                document.getElementById('statSpeed').value = stats.speed;
-                document.getElementById('statStamina').value = stats.stamina;
-                document.getElementById('statFortitude').value = stats.fortitude;
+                function randomizeUserStats() {
+                    const stats = generateNPCStats();
+                    
+                    document.getElementById('statSpeed').value = stats.speed;
+                    document.getElementById('statStamina').value = stats.stamina;
+                    document.getElementById('statFortitude').value = stats.fortitude;
             }
 
             function runRaceSimulation() {
                 clearAllTimers();
                 const errorDiv = document.getElementById('error-message');
                 
-                // Get values and force to numbers
-                const speed = parseInt(document.getElementById('statSpeed').value);
-                const stamina = parseInt(document.getElementById('statStamina').value);
-                const fortitude = parseInt(document.getElementById('statFortitude').value);
+                const racerName = document.getElementById('racerName').value.trim();
+                const speedRaw = document.getElementById('statSpeed').value.trim();
+                const staminaRaw = document.getElementById('statStamina').value.trim();
+                const fortitudeRaw = document.getElementById('statFortitude').value.trim();
                 const raceLength = document.getElementById('strategy').value;
 
-                // Validation logic
-                if (isNaN(speed) || isNaN(stamina) || isNaN(fortitude)) {
-                    errorDiv.innerHTML = "Error: Please enter numbers for all stats.";
+                // regex
+                const nameRegex = /^[a-zA-Z0-9\s.,?!-]{1,20}$/; 
+                const numRegex = /^\d+$/;
+                if (!nameRegex.test(racerName)) {
+                    errorDiv.innerHTML = "Error: Name is invalid. Use 2-20 characters (letters, numbers, and basic punctuation only).";
                     return;
                 }
+
+                if (!numRegex.test(speedRaw) || !numRegex.test(staminaRaw) || !numRegex.test(fortitudeRaw)) {
+                    errorDiv.innerHTML = "Error: Stats must be valid whole numbers (no letters or decimals).";
+                    return;
+                }
+
+                const speed = parseInt(speedRaw);
+                const stamina = parseInt(staminaRaw);
+                const fortitude = parseInt(fortitudeRaw);
+
                 if (speed < 1 || speed > 10 || stamina < 1 || stamina > 10 || fortitude < 1 || fortitude > 10) {
                     errorDiv.innerHTML = "Error: Stats must be between 1 and 10.";
                     return;
@@ -128,7 +140,7 @@
                     "images/horse_mystery.png": "Unknown Steed"
                 };
 
-                const racerName = document.getElementById('racerName').value || "Player 1";
+                racerName = document.getElementById('racerName').value || "Player 1";
                 document.getElementById('name1').innerText = racerName;
                 
                 const selectedRadio = document.querySelector('input[name="horseColor"]:checked');
